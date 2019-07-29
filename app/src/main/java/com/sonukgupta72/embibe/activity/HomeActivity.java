@@ -10,10 +10,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.sonukgupta72.embibe.R;
+import com.sonukgupta72.embibe.db.RepositoryManager;
 import com.sonukgupta72.embibe.fragment.DetailFragment;
 import com.sonukgupta72.embibe.fragment.HomeFragment;
+import com.sonukgupta72.embibe.model.MovieDataModel;
 import com.sonukgupta72.embibe.receiver.AlarmReceiver;
-import com.sonukgupta72.embibe.sqliteHelper.SQLiteHelperClass;
+
+import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -31,23 +34,28 @@ public class HomeActivity extends AppCompatActivity {
         changeFragment(FRAGMENT_HOME, null);
     }
 
-    private boolean isDataAlreadyAdded() {
-        SQLiteHelperClass sqLiteHelperClass = new SQLiteHelperClass(this);
-        return sqLiteHelperClass.getAllMovieList().size() >= 100;
-    }
-
     @Override
     protected void onStart() {
         super.onStart();
 
-        if (isDataAlreadyAdded()) {
-            alarmMgr = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-            Intent intent = new Intent(this, AlarmReceiver.class);
-            alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
-            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime() + 1000 * 30,
-                    1000 * 30, alarmIntent);
-        }
+        RepositoryManager repositoryManager = RepositoryManager.getRepositoryManager(this);
+        repositoryManager.getAll(new RepositoryManager.OnMovieListListener() {
+            @Override
+            public void onMovieList(List<MovieDataModel> entityList) {
+                if (entityList.size() < 100) {
+                    startAlarmManager();
+                }
+            }
+        });
+    }
+
+    private void startAlarmManager() {
+        alarmMgr = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() + 1000 * 30,
+                1000 * 30, alarmIntent);
     }
 
     public void changeFragment(int f, Bundle bundle) {

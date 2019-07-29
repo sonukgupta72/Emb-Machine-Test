@@ -1,33 +1,46 @@
 package com.sonukgupta72.embibe.model;
 
+import android.arch.persistence.room.ColumnInfo;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 
+@Entity
 public class MovieDataModel implements Serializable {
 
     @SerializedName("rowId")
+    @PrimaryKey(autoGenerate = true)
     Integer rowId;
 
     @SerializedName("imdbID")
+    @ColumnInfo
     String id;
 
     @SerializedName("imdbRating")
+    @ColumnInfo
     String rating;
 
     @SerializedName("Released")
+    @ColumnInfo
     String releasedDate;
 
     @SerializedName("imdbVotes")
+    @ColumnInfo
     String vote;
 
     @SerializedName("Title")
+    @ColumnInfo
     String title;
 
     @SerializedName("imageURL")
+    @ColumnInfo
     String imgUrl;
 
     @SerializedName("detailsUrl")
+    @ColumnInfo
     String detailsUrl;
 
     public Integer getRowId() {

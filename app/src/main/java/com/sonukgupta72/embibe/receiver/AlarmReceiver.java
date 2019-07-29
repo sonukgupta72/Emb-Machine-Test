@@ -15,27 +15,49 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sonukgupta72.embibe.Constant;
 import com.sonukgupta72.embibe.R;
+import com.sonukgupta72.embibe.db.RepositoryManager;
 import com.sonukgupta72.embibe.activity.SplashActivity;
 import com.sonukgupta72.embibe.model.MovieDataModel;
-import com.sonukgupta72.embibe.sqliteHelper.SQLiteHelperClass;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.List;
 
 public class AlarmReceiver extends BroadcastReceiver {
     public static final String LOCAL_NOTIFICATION_BROADCAST = "localBroadcastReceiverNotifications";
     private static final String CHANNEL_ID = "embibe_notification_channel";
     private Context context;
+    RepositoryManager repositoryManager;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         this.context = context;
         Log.d("RECEIVER", new Date().toString());
-        if (!loadJSONFromAssetToDB()) {
-            return;
-        }
+        loadJSONFromAssetToDB();
+    }
+
+    public void loadJSONFromAssetToDB() {
+        repositoryManager = RepositoryManager.getRepositoryManager(context);
+        repositoryManager.getAll(new RepositoryManager.OnMovieListListener(){
+
+            @Override
+            public void onMovieList(List<MovieDataModel> entityList) {
+
+                if (entityList.size() < 100) {
+                    addNextItem(entityList.size() + 1);
+                    showNotification();
+                } else {
+                    cancelAlarmManager();
+                }
+            }
+        });
+
+    }
+
+    private void showNotification() {
 
         Intent mIntent = new Intent(context, SplashActivity.class);
         mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -74,20 +96,10 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
     }
 
-    public boolean loadJSONFromAssetToDB() {
-        SQLiteHelperClass sqLiteHelperClass = new SQLiteHelperClass(context);
-        int dataEntrySize = sqLiteHelperClass.getAllMovieList().size();
-        int nextItemIndex = dataEntrySize + 1;
-
-        if (nextItemIndex > 100) {
-            //all items are already added
-            cancelAlarmManager();
-            return false;
-        }
-
+    private boolean addNextItem(int i) {
         MovieDataModel movieDataModel;
         try {
-            InputStream is = context.getAssets().open(nextItemIndex +".json");
+            InputStream is = context.getAssets().open(i +".json");
             int size = is.available();
             byte[] buffer = new byte[size];
             is.read(buffer);
@@ -100,8 +112,11 @@ public class AlarmReceiver extends BroadcastReceiver {
             ex.printStackTrace();
             return false;
         }
-        if (movieDataModel != null)  {
-            sqLiteHelperClass.addMovie(movieDataModel);
+
+        if (movieDataModel!=null) {
+            movieDataModel.setImgUrl(Constant.IMG_GITHUB_BASEURL + movieDataModel.getId() + Constant.FILE_FORMAT);
+            movieDataModel.setDetailsUrl(Constant.IMDB_BASE_URL + movieDataModel.getId() + "/");
+            repositoryManager.addModel(movieDataModel);
         }
 
         return true;

@@ -17,8 +17,8 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.sonukgupta72.embibe.R;
+import com.sonukgupta72.embibe.db.RepositoryManager;
 import com.sonukgupta72.embibe.model.MovieDataModel;
-import com.sonukgupta72.embibe.sqliteHelper.SQLiteHelperClass;
 
 import static com.sonukgupta72.embibe.fragment.HomeFragment.ROW_ID;
 
@@ -49,28 +49,33 @@ public class DetailFragment extends Fragment implements View.OnClickListener{
         btnNext = view.findViewById(R.id.btnNext);
         btnPrev.setOnClickListener(this);
         btnNext.setOnClickListener(this);
-
-        if (getArguments() != null) {
-                rowId = getArguments().getInt(ROW_ID, -1);
-                if (rowId>=0) {
-                    getMovieModel(rowId);
-                } else {
-                    Toast.makeText(getActivity(), "OOps! Something went wrong.", Toast.LENGTH_LONG).show();
-                }
-        }
         return view;
-    }
-
-    private void getMovieModel(int rowId) {
-        SQLiteHelperClass sqLiteHelperClass = new SQLiteHelperClass(getActivity());
-        movieDataModel = sqLiteHelperClass.getAllMovieFromRowID(rowId);
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        loadWebView();
+
+        if (getArguments() != null) {
+            rowId = getArguments().getInt(ROW_ID, -1);
+            if (rowId>=0) {
+                getMovieModel(rowId);
+            } else {
+                Toast.makeText(getActivity(), "OOps! Something went wrong.", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private void getMovieModel(int rowId) {
+        RepositoryManager repositoryManager = RepositoryManager.getRepositoryManager(getActivity());
+        repositoryManager.getItemById(rowId, new RepositoryManager.OnMovieListener() {
+            @Override
+            public void onMovieList(MovieDataModel item) {
+                movieDataModel = item;
+                loadWebView();
+            }
+        });
     }
 
     private void loadWebView() {

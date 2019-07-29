@@ -1,13 +1,8 @@
 package com.sonukgupta72.embibe.fragment;
 
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,15 +15,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.sonukgupta72.embibe.db.RepositoryManager;
 import com.sonukgupta72.embibe.activity.HomeActivity;
 import com.sonukgupta72.embibe.adapter.MovieListAdapter;
 import com.sonukgupta72.embibe.listener.ItemClickListener;
 import com.sonukgupta72.embibe.model.MovieDataModel;
 import com.sonukgupta72.embibe.R;
 import com.sonukgupta72.embibe.receiver.AlarmReceiver;
-import com.sonukgupta72.embibe.sqliteHelper.SQLiteHelperClass;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,14 +71,6 @@ public class HomeFragment extends Fragment implements ItemClickListener {
         super.onStart();
 
         initView();
-        if (movieDataModels != null
-                && movieDataModels.size() > 0) {
-            rvMovieList.setVisibility(View.VISIBLE);
-            tvEmptyList.setVisibility(View.GONE);
-        } else {
-            rvMovieList.setVisibility(View.GONE);
-            tvEmptyList.setVisibility(View.VISIBLE);
-        }
     }
 
     @Override
@@ -136,9 +121,21 @@ public class HomeFragment extends Fragment implements ItemClickListener {
     }
 
     private void getDataList() {
-        movieDataModels.clear();
-        SQLiteHelperClass sqLiteHelperClass = new SQLiteHelperClass(getActivity());
-        movieDataModels.addAll(sqLiteHelperClass.getAllMovieList());
+        //SQLiteHelperClass sqLiteHelperClass = new SQLiteHelperClass(getActivity());
+        RepositoryManager repositoryManager = RepositoryManager.getRepositoryManager(getActivity());
+        repositoryManager.getAll(new RepositoryManager.OnMovieListListener() {
+            @Override
+            public void onMovieList(List<MovieDataModel> entityList) {
+                if (entityList.size() > 0) {
+                    movieDataModels.clear();
+                    movieDataModels.addAll(entityList);
+                    movieListAdapter.notifyDataSetChanged();
+                } else {
+                    rvMovieList.setVisibility(View.GONE);
+                    tvEmptyList.setVisibility(View.VISIBLE);
+                }
+            }
+        });
     }
 
 }
