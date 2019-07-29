@@ -149,6 +149,10 @@ public class HomeFragment extends Fragment implements ItemClickListener {
                     movieDataModels.clear();
                     movieDataModels.addAll(entityList);
                     movieListAdapter.notifyDataSetChanged();
+                    if (rvMovieList.getVisibility() == View.GONE) {
+                        rvMovieList.setVisibility(View.VISIBLE);
+                        tvEmptyList.setVisibility(View.GONE);
+                    }
                 } else {
                     rvMovieList.setVisibility(View.GONE);
                     tvEmptyList.setVisibility(View.VISIBLE);
