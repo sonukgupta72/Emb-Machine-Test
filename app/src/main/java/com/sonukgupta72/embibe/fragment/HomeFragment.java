@@ -1,9 +1,13 @@
 package com.sonukgupta72.embibe.fragment;
 
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.sonukgupta72.embibe.activity.HomeActivity.FRAGMENT_DETAILS;
+import static com.sonukgupta72.embibe.receiver.AlarmReceiver.LOCAL_NOTIFICATION_BROADCAST;
 
 
 /**
@@ -43,6 +48,7 @@ public class HomeFragment extends Fragment implements ItemClickListener {
     private MovieListAdapter movieListAdapter;
     Context context;
     AlarmReceiver alR;
+    private AlarmReceiver receiver;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -71,6 +77,19 @@ public class HomeFragment extends Fragment implements ItemClickListener {
         super.onStart();
 
         initView();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver,
+                new IntentFilter(LOCAL_NOTIFICATION_BROADCAST));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
     }
 
     @Override
@@ -137,5 +156,12 @@ public class HomeFragment extends Fragment implements ItemClickListener {
             }
         });
     }
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Get extra data included in the Intent
+            getDataList();
+        }
+    };
 
 }

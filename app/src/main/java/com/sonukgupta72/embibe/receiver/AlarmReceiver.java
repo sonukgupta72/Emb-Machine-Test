@@ -31,6 +31,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     private static final String CHANNEL_ID = "embibe_notification_channel";
     private Context context;
     RepositoryManager repositoryManager;
+    MovieDataModel movieDataModel;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -65,8 +66,8 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notifications_active_white_24dp)
-                .setContentTitle("New Movie available")
-                .setContentText("Check this out!")
+                .setContentTitle(context.getString(R.string.notification_title))
+                .setContentText(movieDataModel.getTitle())
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
@@ -97,7 +98,6 @@ public class AlarmReceiver extends BroadcastReceiver {
     }
 
     private boolean addNextItem(int i) {
-        MovieDataModel movieDataModel;
         try {
             InputStream is = context.getAssets().open(i +".json");
             int size = is.available();
